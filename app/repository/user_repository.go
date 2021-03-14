@@ -2,15 +2,16 @@ package repository
 
 import (
 	"errors"
-	"github.com/sirupsen/logrus"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 	"mgo-gin/app/form"
 	"mgo-gin/app/model"
 	"mgo-gin/db"
 	"mgo-gin/utils/bcrypt"
 	"net/http"
+
+	"github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var UserEntity IUser
@@ -24,6 +25,7 @@ type IUser interface {
 	GetAll() ([]model.User, int, error)
 	GetOneByUsername(username string) (*model.User, int, error)
 	CreateOne(userForm form.User) (*model.User, int, error)
+	DeleteOneByUsername(username string) (int, error)
 }
 
 //func NewToDoEntity
@@ -61,7 +63,7 @@ func (entity *userEntity) GetOneByUsername(username string) (*model.User, int, e
 
 	var user model.User
 	err :=
-		entity.repo.FindOne(ctx, bson.M{"username": username}, ).Decode(&user)
+		entity.repo.FindOne(ctx, bson.M{"username": username}).Decode(&user)
 
 	if err != nil {
 		logrus.Print(err)
@@ -69,6 +71,20 @@ func (entity *userEntity) GetOneByUsername(username string) (*model.User, int, e
 	}
 
 	return &user, http.StatusOK, nil
+}
+
+func (entity *userEntity) DeleteOneByUsername(username string) (int, error) {
+	ctx, cancel := initContext()
+	defer cancel()
+	err :=
+		entity.repo.FindOneAndDelete(ctx, bson.M{"username": username}, nil)
+
+	if err != nil {
+		logrus.Print(err)
+		return http.StatusOK, nil
+	}
+
+	return http.StatusOK, nil
 }
 
 func (entity *userEntity) CreateOne(userForm form.User) (*model.User, int, error) {

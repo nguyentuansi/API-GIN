@@ -1,7 +1,6 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
 	"mgo-gin/app/form"
 	"mgo-gin/app/repository"
 	"mgo-gin/db"
@@ -9,8 +8,9 @@ import (
 	"mgo-gin/utils/bcrypt"
 	err2 "mgo-gin/utils/err"
 	"net/http"
-)
 
+	"github.com/gin-gonic/gin"
+)
 
 func ApplyUserAPI(app *gin.RouterGroup, resource *db.Resource) {
 	userEntity := repository.NewUserEntity(resource)
@@ -19,8 +19,10 @@ func ApplyUserAPI(app *gin.RouterGroup, resource *db.Resource) {
 	authRoute.POST("/sign-up", signUp(userEntity))
 
 	userRoute := app.Group("/users")
-	userRoute.GET("/get-all", getAllUSer(userEntity)) // when need authorization
-	userRoute.GET("", getAllUSer(userEntity))
+	userRoute.GET("", getAllUSer(userEntity)) // when need authorization
+	// userRoute.GET("", getAllUSer(userEntity))
+	userRoute.GET("/:username", getUserByUsername(userEntity))
+	userRoute.DELETE("/:username", removeUserByUsername(userEntity))
 }
 
 func login(userEntity repository.IUser) func(ctx *gin.Context) {
@@ -34,7 +36,7 @@ func login(userEntity repository.IUser) func(ctx *gin.Context) {
 
 		user, code, _ := userEntity.GetOneByUsername(userRequest.Username)
 
-		if (user ==nil) || bcrypt.ComparePasswordAndHashedPassword(userRequest.Password,user.Password) !=nil {
+		if (user == nil) || bcrypt.ComparePasswordAndHashedPassword(userRequest.Password, user.Password) != nil {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"err": "Wrong username or password"})
 			return
 		}
@@ -79,6 +81,30 @@ func getAllUSer(userEntity repository.IUser) func(ctx *gin.Context) {
 		response := map[string]interface{}{
 			"users": list,
 			"error": err2.GetErrorMessage(err),
+		}
+		ctx.JSON(code, response)
+	}
+}
+
+func getUserByUsername(userEntity repository.IUser) func(ctc *gin.Context) {
+	return func(ctx *gin.Context) {
+		id := ctx.Param("username")
+		user, code, err := userEntity.GetOneByUsername(id)
+		response := map[string]interface{}{
+			"user": user,
+			"err":  err2.GetErrorMessage(err),
+		}
+		ctx.JSON(code, response)
+	}
+}
+
+func removeUserByUsername(userEntity repository.IUser) func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+		id := ctx.Param("username")
+		code, err := userEntity.DeleteOneByUsername(id)
+
+		response := map[string]interface{}{
+			"err": err2.GetErrorMessage(err),
 		}
 		ctx.JSON(code, response)
 	}

@@ -1,8 +1,6 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"mgo-gin/app/form"
 	"mgo-gin/app/repository"
 	"mgo-gin/db"
@@ -11,6 +9,9 @@ import (
 	err2 "mgo-gin/utils/err"
 	"mgo-gin/utils/firebase"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 func ApplyToDoAPI(app *gin.RouterGroup, resource *db.Resource) {
@@ -18,7 +19,8 @@ func ApplyToDoAPI(app *gin.RouterGroup, resource *db.Resource) {
 	toDoRoute := app.Group("/todo")
 
 	toDoRoute.GET("/:id", getToDoById(toDoEntity))
-	toDoRoute.POST("", createToDo(toDoEntity))
+	toDoRoute.POST("/create", createToDo(toDoEntity))
+	toDoRoute.POST("/id", getToDoById(toDoEntity))
 	toDoRoute.PUT("/:id", updateToDo(toDoEntity))
 
 	toDoRoute.Use(middlewares.RequireAuthenticated())
