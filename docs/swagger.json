@@ -15,16 +15,14 @@
         },
         "version": "1.0"
     },
-    "host": "localhost:8585",
+    "host": "localhost:8080",
     "basePath": "/api/v1",
     "paths": {
         "/user": {
             "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
+                "security": [{
+                    "ApiKeyAuth": []
+                }],
                 "description": "Get all user",
                 "consumes": [
                     "application/json"

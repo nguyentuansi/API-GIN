@@ -2,13 +2,14 @@ package db
 
 import (
 	"context"
+	"log"
+	"os"
+	"time"
+
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"log"
-	"os"
-	"time"
 )
 
 type Resource struct {
@@ -26,9 +27,13 @@ func InitResource() (*Resource, error) {
 		log.Print(err)
 	}
 
-	host :=os.Getenv("MONGO_HOST")
+	var cred options.Credential
+	cred.Username = "myuser"
+	cred.Password = "mypassword"
+
+	host := os.Getenv("MONGO_HOST")
 	dbName := os.Getenv("MONGO_DB_NAME")
-	mongoClient, err := mongo.NewClient(options.Client().ApplyURI(host))
+	mongoClient, err := mongo.NewClient(options.Client().ApplyURI(host).SetAuth(cred))
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 
 	err = mongoClient.Connect(ctx)
